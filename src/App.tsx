@@ -2,7 +2,7 @@ import { useState } from "react";
 import { HomeScreen } from "./components/HomeScreen";
 import { EmergencyFlowScreen } from "./components/EmergencyFlowScreen";
 import { ConfirmationScreen } from "./components/ConfirmationScreen";
-import { ActionDashboard } from "./components/ActionDashboard";
+import { ActionPlanFlow } from "./components/ActionPlanFlow";
 import { BranchingTriageFlow, TriageResult } from "./components/BranchingTriageFlow";
 import { ConversationalDetailsCollection, TransactionDetails } from "./components/ConversationalDetailsCollection";
 import { Toaster } from "./components/ui/sonner";
@@ -149,7 +149,7 @@ export default function App() {
       )}
 
       {currentScreen === "dashboard" && confirmedData && (
-        <ActionDashboard
+        <ActionPlanFlow
           caseId="INC-001"
           caseDetails={confirmedData}
         />

@@ -8,12 +8,17 @@ import { layouts, headers, typography, cards, progress, badges } from "../styles
 interface ActionDashboardProps {
   caseId: string;
   caseDetails: any;
+  initialActions?: {
+    callBank: { status: "pending" | "completed", ref: string };
+    sendSMS: { status: "pending" | "completed", ref: string };
+    fileCybercrime: { status: "pending" | "completed", ref: string };
+  };
 }
 
-export function ActionDashboard({ caseId, caseDetails }: ActionDashboardProps) {
+export function ActionDashboard({ caseId, caseDetails, initialActions }: ActionDashboardProps) {
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [smsModalOpen, setSmsModalOpen] = useState(false);
-  const [actions, setActions] = useState({
+  const [actions, setActions] = useState(initialActions || {
     callBank: { status: "pending" as const, ref: "" },
     sendSMS: { status: "pending" as const, ref: "" },
     fileCybercrime: { status: "pending" as const, ref: "" }
@@ -44,11 +49,7 @@ export function ActionDashboard({ caseId, caseDetails }: ActionDashboardProps) {
         <div className={layouts.containerWide}>
           <div className={`${layouts.flexBetween} ${typography.body.small} mb-2`}>
             <span className="font-semibold">Case #{caseId}</span>
-            <div className="flex items-center gap-4 text-gray-600">
-              <span>⏱️ 12m</span>
-              <span>⚡ 3h 48m</span>
-              <span>📈 85%</span>
-            </div>
+            <span className={badges.urgency("critical")}>ACTIVE CASE</span>
           </div>
         </div>
       </header>
@@ -63,7 +64,7 @@ export function ActionDashboard({ caseId, caseDetails }: ActionDashboardProps) {
 
           <div className="mb-4">
             <div className={`${layouts.flexBetween} ${typography.body.small} mb-2`}>
-              <span className="font-semibold">Progress: {completedCount}/{totalImmediate} Critical</span>
+              <span className="font-semibold">Critical Actions: {completedCount}/{totalImmediate} Complete</span>
               <span className="text-gray-600">{Math.round(progressPercentage)}%</span>
             </div>
             <div className={progress.container}>
@@ -74,15 +75,31 @@ export function ActionDashboard({ caseId, caseDetails }: ActionDashboardProps) {
             </div>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">📈</span>
-              <div>
-                <div className="font-semibold text-green-900">Recovery: 85% → 92%</div>
-                <div className={typography.body.small + " text-green-800"}>(+7% from quick action!)</div>
+          {completedCount === totalImmediate && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">✅</span>
+                <div>
+                  <div className="font-semibold text-green-900">Great work! All critical actions complete</div>
+                  <div className={typography.body.small + " text-green-800"}>Now focus on the follow-up actions below</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {completedCount < totalImmediate && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚡</span>
+                <div>
+                  <div className="font-semibold text-amber-900">
+                    {totalImmediate - completedCount} critical {totalImmediate - completedCount === 1 ? 'action' : 'actions'} remaining
+                  </div>
+                  <div className={typography.body.small + " text-amber-800"}>Complete these as soon as possible</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Immediate Actions */}
