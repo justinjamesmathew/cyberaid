@@ -75,9 +75,9 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
                   1
                 </span>
                 <div>
-                  <h4 className={typography.heading.h4 + " mb-1"}>Find your bank's fraud helpline</h4>
+                  <h4 className={typography.heading.h4 + " mb-1"}>Call {bankContacts.name} fraud helpline</h4>
                   <p className={typography.body.small}>
-                    We'll show you the correct number for {caseDetails.bank || "your bank"}
+                    We've found the correct number: {bankContacts.fraudHelplineDisplay}
                   </p>
                 </div>
               </div>
@@ -205,9 +205,9 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
                   2
                 </span>
                 <div>
-                  <h4 className={typography.heading.h4 + " mb-1"}>Send to bank's SMS number</h4>
+                  <h4 className={typography.heading.h4 + " mb-1"}>Send to {bankContacts.name} SMS number</h4>
                   <p className={typography.body.small}>
-                    We'll provide the correct number for {caseDetails.bank || "your bank"}
+                    We've found the correct number: {bankContacts.smsNumberDisplay}
                   </p>
                 </div>
               </div>
