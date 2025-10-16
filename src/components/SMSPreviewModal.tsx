@@ -14,10 +14,20 @@ interface SMSPreviewModalProps {
     mobile: string;
   };
   smsNumber: string;
+  smsNumberDisplay?: string;
+  bankName?: string;
   fraudScenario?: string;
 }
 
-export function SMSPreviewModal({ isOpen, onClose, caseDetails, smsNumber, fraudScenario }: SMSPreviewModalProps) {
+export function SMSPreviewModal({
+  isOpen,
+  onClose,
+  caseDetails,
+  smsNumber,
+  smsNumberDisplay,
+  bankName,
+  fraudScenario
+}: SMSPreviewModalProps) {
   // Generate scenario-specific SMS template
   const scenarioContent = generateScenarioContent(
     fraudScenario || caseDetails.fraudType || "Financial Fraud",
@@ -51,8 +61,15 @@ export function SMSPreviewModal({ isOpen, onClose, caseDetails, smsNumber, fraud
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          <div className="text-sm text-gray-600 mb-4">
-            To: {smsNumber} (Bank Fraud)
+          {/* Bank SMS Number Display */}
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-5 mb-6">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-1">{bankName || caseDetails.bank} SMS Number</p>
+              <p className="text-3xl font-bold text-orange-600 mb-1 tracking-wider">
+                {smsNumberDisplay || smsNumber}
+              </p>
+              <p className="text-xs text-gray-500 mb-3">Bank Fraud Department</p>
+            </div>
           </div>
 
           {isEditing ? (

@@ -7,10 +7,20 @@ interface CallScriptModalProps {
   onClose: () => void;
   caseDetails: any;
   phoneNumber: string;
+  phoneNumberDisplay?: string;
+  bankName?: string;
   fraudScenario?: string;
 }
 
-export function CallScriptModal({ isOpen, onClose, caseDetails, phoneNumber, fraudScenario }: CallScriptModalProps) {
+export function CallScriptModal({
+  isOpen,
+  onClose,
+  caseDetails,
+  phoneNumber,
+  phoneNumberDisplay,
+  bankName,
+  fraudScenario
+}: CallScriptModalProps) {
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -49,7 +59,24 @@ export function CallScriptModal({ isOpen, onClose, caseDetails, phoneNumber, fra
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          <p className="text-gray-700 mb-4">What to say on the call:</p>
+          {/* Bank Phone Number Display */}
+          <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-5 mb-6">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-1">{bankName || caseDetails.bank} Fraud Helpline</p>
+              <p className="text-3xl font-bold text-red-600 mb-3 tracking-wider">
+                {phoneNumberDisplay || phoneNumber}
+              </p>
+              <button
+                onClick={handleCall}
+                className="w-full bg-gradient-to-br from-[#DC2626] to-[#991B1B] text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">📞</span>
+                CALL NOW
+              </button>
+            </div>
+          </div>
+
+          <p className="text-gray-700 mb-4 font-semibold">What to say on the call:</p>
 
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4 whitespace-pre-wrap font-mono text-sm">
             {script}
@@ -57,7 +84,7 @@ export function CallScriptModal({ isOpen, onClose, caseDetails, phoneNumber, fra
 
           <button
             onClick={handleCopy}
-            className="w-full mb-3 bg-white border border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
           >
             {copied ? (
               <>
@@ -70,13 +97,6 @@ export function CallScriptModal({ isOpen, onClose, caseDetails, phoneNumber, fra
                 <span>Copy Script</span>
               </>
             )}
-          </button>
-
-          <button
-            onClick={handleCall}
-            className="w-full bg-gradient-to-br from-[#DC2626] to-[#991B1B] text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
-          >
-            📞 CALL NOW
           </button>
 
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">

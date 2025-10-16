@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Copy, Mail, Check, Edit } from "lucide-react";
 import { generateScenarioContent } from "../utils/scenarioContent";
+import { getBankContacts } from "../data/bankContacts";
 
 interface EmailBankCardProps {
   isExpanded: boolean;
@@ -10,14 +11,6 @@ interface EmailBankCardProps {
   caseDetails: any;
   fraudScenario?: string;
 }
-
-const bankEmails: Record<string, string> = {
-  "HDFC Bank": "fraud@hdfcbank.com",
-  "SBI": "complaint@sbi.co.in",
-  "ICICI Bank": "customer.care@icicibank.com",
-  "Axis Bank": "customer.care@axisbank.com",
-  "Kotak Mahindra Bank": "customer.care@kotak.com"
-};
 
 export function EmailBankCard({
   isExpanded,
@@ -41,8 +34,9 @@ export function EmailBankCard({
       caseDetails
     );
 
-    const bankEmail = bankEmails[caseDetails.bank] || "fraud@bank.com";
-    setToEmail(bankEmail);
+    // Get bank-specific contact information
+    const bankContacts = getBankContacts(caseDetails.bank || "");
+    setToEmail(bankContacts.email);
     setSubject(`Urgent: Fraud Report - Transaction ID ${caseDetails.transactionId}`);
     setEmailBody(scenarioContent.emailBody);
   }, [caseDetails, fraudScenario]);

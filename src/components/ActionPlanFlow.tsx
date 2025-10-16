@@ -5,6 +5,7 @@ import { ActionDashboard } from "./ActionDashboard";
 import { CallScriptModal } from "./CallScriptModal";
 import { SMSPreviewModal } from "./SMSPreviewModal";
 import { cards, buttons, typography, spacing } from "../styles/designSystem";
+import { getBankContacts } from "../data/bankContacts";
 
 interface ActionPlanFlowProps {
   caseId: string;
@@ -23,6 +24,9 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
     sendSMS: { status: "pending" as const, ref: "" },
     fileCybercrime: { status: "pending" as const, ref: "" }
   });
+
+  // Get bank-specific contact information
+  const bankContacts = getBankContacts(caseDetails.bank || "");
 
   const handleMarkDone = (actionKey: keyof typeof actions, ref?: string) => {
     setActions(prev => ({
@@ -158,7 +162,9 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
           isOpen={callModalOpen}
           onClose={() => setCallModalOpen(false)}
           caseDetails={caseDetails}
-          phoneNumber="1800-XXX-XXXX"
+          phoneNumber={bankContacts.fraudHelpline}
+          phoneNumberDisplay={bankContacts.fraudHelplineDisplay}
+          bankName={bankContacts.name}
           fraudScenario={caseDetails.fraudType}
         />
       </>
@@ -260,7 +266,9 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
           isOpen={smsModalOpen}
           onClose={() => setSmsModalOpen(false)}
           caseDetails={caseDetails}
-          smsNumber="XXXX"
+          smsNumber={bankContacts.smsNumber}
+          smsNumberDisplay={bankContacts.smsNumberDisplay}
+          bankName={bankContacts.name}
           fraudScenario={caseDetails.fraudType}
         />
       </>
