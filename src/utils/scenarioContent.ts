@@ -27,9 +27,9 @@ INCIDENT DETAILS:
 • My UPI App: [PhonePe/GPay/Paytm/Other]
 
 URGENT REQUESTS:
-1. IMMEDIATELY block the recipient/merchant account
-2. Initiate chargeback for the excess amount
-3. Flag this merchant for investigation
+1. Report this merchant UPI ID for fraud investigation
+2. Request transaction reversal or chargeback for the excess amount
+3. Block my UPI/card to prevent further unauthorized transactions
 4. Provide me with a complaint reference number
 5. Send email confirmation of this complaint
 
@@ -73,12 +73,12 @@ IMMEDIATE ACTIONS TAKEN:
 • Disabled UPI on all apps: [Yes/No]
 
 URGENT REQUESTS:
-1. IMMEDIATELY freeze/block the recipient merchant account (${caseDetails.recipientUPI || "___"})
+1. Report this merchant UPI ID (${caseDetails.recipientUPI || "___"}) for fraud investigation and blacklisting
 2. Initiate chargeback for the full fraudulent amount of ${caseDetails.amount || "₹___"}
 3. Investigate this merchant for QR code manipulation
-4. Provide written acknowledgment of this complaint
-5. Share the investigation timeline and expected resolution date
-6. Add this merchant to fraud watch list
+4. Block my UPI and cards to prevent further unauthorized transactions
+5. Provide written acknowledgment of this complaint
+6. Share the investigation timeline and expected resolution date
 7. Assist in recovering the fraudulent amount
 
 EVIDENCE ATTACHED:
@@ -613,9 +613,9 @@ TRANSACTION DETAILS:
 • Payment Method: ${caseDetails.paymentMethod || "UPI/Card/Net Banking"}
 
 URGENT REQUESTS:
-1. Block the recipient account
-2. Freeze my account/cards if needed
-3. Initiate chargeback/reversal
+1. Report the recipient account for fraud investigation
+2. Block my cards and freeze my account if needed to prevent further loss
+3. Initiate transaction reversal or chargeback if possible
 4. Provide complaint reference number
 5. Guide me on next steps
 
@@ -651,10 +651,10 @@ ACTIONS TAKEN:
 • Filed cybercrime complaint: [If done]
 
 REQUESTS:
-1. Block recipient account
-2. Reverse the fraudulent transaction
-3. Secure my account
-4. Investigate this fraud
+1. Report recipient account for fraud investigation
+2. Request reversal of the fraudulent transaction if possible
+3. Block my cards/UPI and secure my account
+4. Investigate this fraud and track the recipient
 5. Provide written acknowledgment
 
 CONTACT:

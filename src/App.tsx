@@ -5,6 +5,7 @@ import { ConfirmationScreen } from "./components/ConfirmationScreen";
 import { ActionPlanFlow } from "./components/ActionPlanFlow";
 import { BranchingTriageFlow, TriageResult } from "./components/BranchingTriageFlow";
 import { ConversationalDetailsCollection, TransactionDetails } from "./components/ConversationalDetailsCollection";
+import { AppHeader } from "./components/AppHeader";
 import { Toaster } from "./components/ui/sonner";
 
 type Screen = "home" | "triage" | "details" | "emergency" | "confirmation" | "dashboard";
@@ -110,13 +111,15 @@ export default function App() {
   };
 
   return (
-    <div className="size-full">
-      {currentScreen === "home" && (
-        <HomeScreen
-          onEmergency={handleEmergency}
-          onPastIncident={handlePastIncident}
-        />
-      )}
+    <div className="size-full flex flex-col">
+      <AppHeader />
+      <div className="flex-1 overflow-auto">
+        {currentScreen === "home" && (
+          <HomeScreen
+            onEmergency={handleEmergency}
+            onPastIncident={handlePastIncident}
+          />
+        )}
 
       {currentScreen === "triage" && (
         <BranchingTriageFlow onComplete={handleTriageComplete} />
@@ -127,6 +130,7 @@ export default function App() {
           fraudScenario={triageData.fraudScenario}
           urgencyLevel={triageData.urgencyLevel}
           nextStepsPreview={triageData.actions.map(action => action.title)}
+          triageAnswers={triageData.answers}
           onComplete={handleDetailsComplete}
           onBack={handleBack}
         />
@@ -154,6 +158,7 @@ export default function App() {
           caseDetails={confirmedData}
         />
       )}
+      </div>
 
       <Toaster position="top-center" richColors />
     </div>

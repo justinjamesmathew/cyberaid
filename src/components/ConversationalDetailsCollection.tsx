@@ -8,6 +8,7 @@ interface ConversationalDetailsCollectionProps {
   fraudScenario: string;
   urgencyLevel: string;
   nextStepsPreview: string[];
+  triageAnswers?: Record<string, string>;
   onComplete: (details: TransactionDetails) => void;
   onBack: () => void;
 }
@@ -36,6 +37,7 @@ export function ConversationalDetailsCollection({
   fraudScenario,
   urgencyLevel,
   nextStepsPreview,
+  triageAnswers = {},
   onComplete,
   onBack
 }: ConversationalDetailsCollectionProps) {
@@ -58,16 +60,52 @@ export function ConversationalDetailsCollection({
   const [currentInput, setCurrentInput] = useState("");
   const [error, setError] = useState("");
 
+  // Determine if transaction questions should be skipped based on triage answers
+  const shouldSkipTransactionQuestions = () => {
+    const moneyStatus = triageAnswers["Q2_MONEY_STATUS"];
+    const scenario = fraudScenario.toLowerCase();
+
+    // Skip if user indicated no money lost
+    if (moneyStatus === "prevented") return true;
+
+    // Skip if it's a false alarm or prevention scenario
+    if (scenario.includes("false alarm")) return true;
+    if (scenario.includes("prevented")) return true;
+    if (scenario.includes("failed fraud")) return true;
+
+    // Skip if checking showed no suspicious activity
+    if (triageAnswers["Q4_CHECK_RESULT"] === "no-suspicious") return true;
+
+    return false;
+  };
+
   const handleNext = (field: keyof TransactionDetails, value: string) => {
     setDetails(prev => ({ ...prev, [field]: value }));
     setCurrentInput("");
     setError("");
 
-    // Move to next step
-    const stepOrder: QuestionStep[] = ["preview", "name", "phone", "email", "bank", "transactionId", "amount", "date", "time", "recipient", "description", "complete"];
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex < stepOrder.length - 1) {
-      setTimeout(() => setCurrentStep(stepOrder[currentIndex + 1]), 300);
+    // Determine next step based on conditional logic
+    let nextStep: QuestionStep;
+    const skipTransactionQuestions = shouldSkipTransactionQuestions();
+
+    if (currentStep === "preview") nextStep = "name";
+    else if (currentStep === "name") nextStep = "phone";
+    else if (currentStep === "phone") nextStep = "email";
+    else if (currentStep === "email") nextStep = "bank";
+    else if (currentStep === "bank") {
+      // Skip transaction questions if no money lost
+      nextStep = skipTransactionQuestions ? "description" : "transactionId";
+    }
+    else if (currentStep === "transactionId") nextStep = "amount";
+    else if (currentStep === "amount") nextStep = "date";
+    else if (currentStep === "date") nextStep = "time";
+    else if (currentStep === "time") nextStep = "recipient";
+    else if (currentStep === "recipient") nextStep = "description";
+    else if (currentStep === "description") nextStep = "complete";
+    else nextStep = "complete";
+
+    if (nextStep !== "complete") {
+      setTimeout(() => setCurrentStep(nextStep), 300);
     }
   };
 
@@ -79,16 +117,34 @@ export function ConversationalDetailsCollection({
   };
 
   const handleBack = () => {
-    const stepOrder: QuestionStep[] = ["preview", "name", "phone", "email", "bank", "transactionId", "amount", "date", "time", "recipient", "description", "complete"];
-    const currentIndex = stepOrder.indexOf(currentStep);
-    if (currentIndex > 0) {
-      setCurrentStep(stepOrder[currentIndex - 1]);
+    const skipTransactionQuestions = shouldSkipTransactionQuestions();
+
+    // Determine previous step based on conditional logic
+    let prevStep: QuestionStep | null;
+
+    if (currentStep === "name") prevStep = "preview";
+    else if (currentStep === "phone") prevStep = "name";
+    else if (currentStep === "email") prevStep = "phone";
+    else if (currentStep === "bank") prevStep = "email";
+    else if (currentStep === "transactionId") prevStep = "bank";
+    else if (currentStep === "amount") prevStep = "transactionId";
+    else if (currentStep === "date") prevStep = "amount";
+    else if (currentStep === "time") prevStep = "date";
+    else if (currentStep === "recipient") prevStep = "time";
+    else if (currentStep === "description") {
+      // If transaction questions were skipped, go back to bank
+      prevStep = skipTransactionQuestions ? "bank" : "recipient";
+    }
+    else prevStep = null;
+
+    if (prevStep) {
+      setCurrentStep(prevStep);
     } else {
       onBack();
     }
   };
 
-  const validateAndNext = (field: keyof TransactionDetails, value: string, nextStep: QuestionStep) => {
+  const validateAndNext = (field: keyof TransactionDetails, value: string) => {
     // Validation logic
     if (field === "yourName" && !value.trim()) {
       setError("Please enter your name");
@@ -215,14 +271,14 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("yourName", currentInput, "phone")}
+          onSubmit={() => validateAndNext("yourName", currentInput)}
           error={error}
         >
           <input
             type="text"
             value={currentInput}
             onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && validateAndNext("yourName", currentInput, "phone")}
+            onKeyPress={(e) => e.key === "Enter" && validateAndNext("yourName", currentInput)}
             placeholder="Your full name (as per bank account)"
             className={inputs.text}
             autoFocus
@@ -248,7 +304,7 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("yourPhone", currentInput, "email")}
+          onSubmit={() => validateAndNext("yourPhone", currentInput)}
           error={error}
           secondaryButton={{
             label: "I'll add later",
@@ -259,7 +315,7 @@ export function ConversationalDetailsCollection({
             type="tel"
             value={currentInput}
             onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && validateAndNext("yourPhone", currentInput, "email")}
+            onKeyPress={(e) => e.key === "Enter" && validateAndNext("yourPhone", currentInput)}
             placeholder="10-digit mobile number"
             className={inputs.text}
             autoFocus
@@ -285,7 +341,7 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("yourEmail", currentInput, "bank")}
+          onSubmit={() => validateAndNext("yourEmail", currentInput)}
           error={error}
           secondaryButton={{
             label: "Skip",
@@ -296,7 +352,7 @@ export function ConversationalDetailsCollection({
             type="email"
             value={currentInput}
             onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && validateAndNext("yourEmail", currentInput, "bank")}
+            onKeyPress={(e) => e.key === "Enter" && validateAndNext("yourEmail", currentInput)}
             placeholder="your.email@example.com"
             className={inputs.text}
             autoFocus
@@ -322,14 +378,14 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => currentInput && validateAndNext("bankName", currentInput, "transactionId")}
+          onSubmit={() => currentInput && validateAndNext("bankName", currentInput)}
           error={error}
         >
           <div className="grid grid-cols-2 gap-3 mb-4">
             {commonBanks.map((bank) => (
               <button
                 key={bank}
-                onClick={() => bank === "Other" ? setCurrentInput("") : validateAndNext("bankName", bank, "transactionId")}
+                onClick={() => bank === "Other" ? setCurrentInput("") : validateAndNext("bankName", bank)}
                 className={buttons.quickAction}
               >
                 {bank}
@@ -343,7 +399,7 @@ export function ConversationalDetailsCollection({
               type="text"
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && currentInput && validateAndNext("bankName", currentInput, "transactionId")}
+              onKeyPress={(e) => e.key === "Enter" && currentInput && validateAndNext("bankName", currentInput)}
               placeholder="Bank name"
               className={inputs.text}
             />
@@ -369,18 +425,18 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("transactionId", currentInput, "amount")}
+          onSubmit={() => validateAndNext("transactionId", currentInput)}
           error={error}
           secondaryButton={{
             label: "Don't have it",
-            onClick: () => handleNext("transactionId", "Will retrieve later", "amount")
+            onClick: () => handleNext("transactionId", "Will retrieve later")
           }}
         >
           <input
             type="text"
             value={currentInput}
             onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && validateAndNext("transactionId", currentInput, "amount")}
+            onKeyPress={(e) => e.key === "Enter" && validateAndNext("transactionId", currentInput)}
             placeholder="e.g., 123456789012"
             className={inputs.text + " font-mono"}
             autoFocus
@@ -412,7 +468,7 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("amountLost", currentInput, "date")}
+          onSubmit={() => validateAndNext("amountLost", currentInput)}
           error={error}
         >
           <div className="flex items-center gap-3">
@@ -421,7 +477,7 @@ export function ConversationalDetailsCollection({
               type="number"
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && validateAndNext("amountLost", currentInput, "date")}
+              onKeyPress={(e) => e.key === "Enter" && validateAndNext("amountLost", currentInput)}
               placeholder="5000"
               className={inputs.number}
               autoFocus
@@ -448,11 +504,11 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("transactionDate", currentInput, "time")}
+          onSubmit={() => validateAndNext("transactionDate", currentInput)}
           error={error}
           secondaryButton={{
             label: "Today",
-            onClick: () => handleNext("transactionDate", new Date().toISOString().split('T')[0], "time")
+            onClick: () => handleNext("transactionDate", new Date().toISOString().split('T')[0])
           }}
         >
           <input
@@ -484,7 +540,7 @@ export function ConversationalDetailsCollection({
         totalQuestions={10}
       >
         <QuestionForm
-          onSubmit={() => validateAndNext("transactionTime", currentInput, "recipient")}
+          onSubmit={() => validateAndNext("transactionTime", currentInput)}
           error={error}
         >
           <input
@@ -497,19 +553,19 @@ export function ConversationalDetailsCollection({
 
           <div className="grid grid-cols-3 gap-3 mt-4">
             <button
-              onClick={() => handleNext("transactionTime", "09:00", "recipient")}
+              onClick={() => handleNext("transactionTime", "09:00")}
               className={buttons.quickAction}
             >
               Morning
             </button>
             <button
-              onClick={() => handleNext("transactionTime", "14:00", "recipient")}
+              onClick={() => handleNext("transactionTime", "14:00")}
               className={buttons.quickAction}
             >
               Afternoon
             </button>
             <button
-              onClick={() => handleNext("transactionTime", "20:00", "recipient")}
+              onClick={() => handleNext("transactionTime", "20:00")}
               className={buttons.quickAction}
             >
               Evening

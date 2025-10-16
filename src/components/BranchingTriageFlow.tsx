@@ -845,12 +845,30 @@ export function BranchingTriageFlow({ onComplete }: BranchingTriageFlowProps) {
 
   const generateResult = (finalAnswers: Record<string, string>, finalPath: string[], endpointValue: string) => {
     const scenario = getFraudScenario(finalAnswers, endpointValue);
-    const actions = getActions(scenario, urgencyLevel);
-    const recovery = getRecoveryProbability(scenario, urgencyLevel);
+
+    // Adjust urgency level based on scenario context (not just time)
+    let adjustedUrgency = urgencyLevel;
+
+    // Override urgency for false alarms and prevented fraud
+    if (scenario.name.includes("False Alarm") || scenario.name.includes("No Fraud Detected")) {
+      adjustedUrgency = "standard";
+    } else if (scenario.name.includes("Prevented") || scenario.name.includes("Failed")) {
+      adjustedUrgency = "high"; // Secure account, but no recovery needed
+    } else if (scenario.name.includes("Account Takeover")) {
+      adjustedUrgency = "critical"; // Always critical regardless of time
+    } else if (scenario.name.includes("Password Changed") || scenario.name.includes("Locked out")) {
+      adjustedUrgency = "critical"; // Account access compromised
+    } else if (scenario.name.includes("Investment") || scenario.name.includes("Job Fraud")) {
+      // Investment fraud is urgent even if reported late
+      if (adjustedUrgency === "standard") adjustedUrgency = "urgent";
+    }
+
+    const actions = getActions(scenario, adjustedUrgency);
+    const recovery = getRecoveryProbability(scenario, adjustedUrgency);
 
     const result: TriageResult = {
       fraudScenario: scenario.name,
-      urgencyLevel,
+      urgencyLevel: adjustedUrgency,
       actions,
       recoveryProbability: recovery,
       path: finalPath,

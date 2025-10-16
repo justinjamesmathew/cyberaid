@@ -63,12 +63,14 @@ export const BANK_CONTACTS: Record<string, BankContactInfo> = {
   },
   "Kotak Mahindra Bank": {
     name: "Kotak Mahindra Bank",
-    fraudHelpline: "18602662666",
-    fraudHelplineDisplay: "1860-266-2666",
+    fraudHelpline: "18002090000",
+    fraudHelplineDisplay: "1800-209-0000",
     smsNumber: "5676788",
     smsNumberDisplay: "5676788",
     email: "customer.care@kotak.com",
     website: "https://www.kotak.com"
+    // Source: https://www.kotak.com/en/customer-service/contact-us.html
+    // Verified: Fraud & unauthorized transactions reporting number
   },
   "Punjab National Bank": {
     name: "Punjab National Bank",
