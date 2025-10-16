@@ -40,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist   # Vite output
+          path: ./build   # Vite output configured in vite.config.ts
 
   deploy:
     needs: build
