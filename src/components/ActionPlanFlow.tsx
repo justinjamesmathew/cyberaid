@@ -2,10 +2,10 @@ import { useState } from "react";
 import { ActionIntroScreen } from "./ActionIntroScreen";
 import { ActionStepScreen } from "./ActionStepScreen";
 import { ActionDashboard } from "./ActionDashboard";
-import { CallScriptModal } from "./CallScriptModal";
-import { SMSPreviewModal } from "./SMSPreviewModal";
-import { cards, buttons, typography, spacing } from "../styles/designSystem";
+import { cards, buttons, typography } from "../styles/designSystem";
 import { getBankContacts } from "../data/bankContacts";
+import { generateScenarioContent } from "../utils/scenarioContent";
+import { Copy, Check } from "lucide-react";
 
 interface ActionPlanFlowProps {
   caseId: string;
@@ -16,8 +16,8 @@ type FlowStep = "intro" | "step1" | "step2" | "step3" | "dashboard";
 
 export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>("intro");
-  const [callModalOpen, setCallModalOpen] = useState(false);
-  const [smsModalOpen, setSmsModalOpen] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
+  const [copiedSMS, setCopiedSMS] = useState(false);
 
   const [actions, setActions] = useState({
     callBank: { status: "pending" as const, ref: "" },
@@ -27,6 +27,12 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
 
   // Get bank-specific contact information
   const bankContacts = getBankContacts(caseDetails.bank || "");
+
+  // Generate scenario-specific content
+  const scenarioContent = generateScenarioContent(
+    caseDetails.fraudType || "Financial Fraud",
+    caseDetails
+  );
 
   const handleMarkDone = (actionKey: keyof typeof actions, ref?: string) => {
     setActions(prev => ({
@@ -107,15 +113,54 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={() => setCallModalOpen(true)}
-                className={buttons.primary.base + " flex items-center justify-center gap-2"}
-              >
-                <span className="text-xl">📞</span>
-                VIEW CALL SCRIPT & NUMBER
-              </button>
+            {/* Bank Contact Number */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-6 mb-6">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">{bankContacts.name} Fraud Helpline</p>
+                <p className="text-4xl font-bold text-red-600 mb-4 tracking-wider">
+                  {bankContacts.fraudHelplineDisplay}
+                </p>
+                <button
+                  onClick={() => window.open(`tel:${bankContacts.fraudHelpline}`)}
+                  className={buttons.primary.base + " flex items-center justify-center gap-2"}
+                >
+                  <span className="text-xl">📞</span>
+                  CALL NOW
+                </button>
+              </div>
+            </div>
 
+            {/* Call Script */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className={typography.heading.h4}>What to say on the call:</h3>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(scenarioContent.callScript);
+                    setCopiedScript(true);
+                    setTimeout(() => setCopiedScript(false), 2000);
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2"
+                >
+                  {copiedScript ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy Script
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-5 whitespace-pre-wrap font-mono text-sm max-h-96 overflow-y-auto">
+                {scenarioContent.callScript}
+              </div>
+            </div>
+
+            <div className="space-y-3">
               {actions.callBank.status === "pending" && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                   <p className={typography.body.small + " text-yellow-800 mb-3"}>
@@ -157,16 +202,6 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
             </div>
           </div>
         </ActionStepScreen>
-
-        <CallScriptModal
-          isOpen={callModalOpen}
-          onClose={() => setCallModalOpen(false)}
-          caseDetails={caseDetails}
-          phoneNumber={bankContacts.fraudHelpline}
-          phoneNumberDisplay={bankContacts.fraudHelplineDisplay}
-          bankName={bankContacts.name}
-          fraudScenario={caseDetails.fraudType}
-        />
       </>
     );
   }
@@ -225,15 +260,59 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={() => setSmsModalOpen(true)}
-                className={buttons.primary.base + " flex items-center justify-center gap-2"}
-              >
-                <span className="text-xl">💬</span>
-                VIEW SMS TEMPLATE
-              </button>
+            {/* Bank SMS Number */}
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-6 mb-6">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">{bankContacts.name} SMS Number</p>
+                <p className="text-4xl font-bold text-orange-600 mb-1 tracking-wider">
+                  {bankContacts.smsNumberDisplay}
+                </p>
+                <p className="text-xs text-gray-500 mb-4">Bank Fraud Department</p>
+                <button
+                  onClick={() => window.open(`sms:${bankContacts.smsNumber}?body=${encodeURIComponent(scenarioContent.smsTemplate)}`)}
+                  className={buttons.primary.base + " flex items-center justify-center gap-2"}
+                >
+                  <span className="text-xl">💬</span>
+                  SEND SMS
+                </button>
+              </div>
+            </div>
 
+            {/* SMS Template */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className={typography.heading.h4}>SMS Message:</h3>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(scenarioContent.smsTemplate);
+                    setCopiedSMS(true);
+                    setTimeout(() => setCopiedSMS(false), 2000);
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2"
+                >
+                  {copiedSMS ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy Message
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-5 whitespace-pre-wrap text-sm shadow-inner">
+                {scenarioContent.smsTemplate}
+              </div>
+              <div className="flex items-center justify-between mt-2 text-sm text-gray-600">
+                <span>Characters: {scenarioContent.smsTemplate.length}/160</span>
+                <span className="text-xs text-gray-500">Pre-filled and ready to send</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
               {actions.sendSMS.status === "pending" && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                   <p className={typography.body.small + " text-yellow-800 mb-3"}>
@@ -261,16 +340,6 @@ export function ActionPlanFlow({ caseId, caseDetails }: ActionPlanFlowProps) {
             </div>
           </div>
         </ActionStepScreen>
-
-        <SMSPreviewModal
-          isOpen={smsModalOpen}
-          onClose={() => setSmsModalOpen(false)}
-          caseDetails={caseDetails}
-          smsNumber={bankContacts.smsNumber}
-          smsNumberDisplay={bankContacts.smsNumberDisplay}
-          bankName={bankContacts.name}
-          fraudScenario={caseDetails.fraudType}
-        />
       </>
     );
   }
